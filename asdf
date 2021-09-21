@@ -1,1 +1,84 @@
-asdf
+#Dit script gebruikt de python extentie 'pandas' om van een .gazedata file een readable file voor I2MC te maken.
+#Hiernaast dropt het op basis van de special X data de gerandomiseerde fixatiestippen. Zet # voor alle lines bij dat deel mocht dit je dit niet willen gebruiken
+#Tweede blok heeft als input de fixaties van I2MC en berekent welke AOI er is (in het geval van het special X project, left stimulus of right stimulus)
+#Bij vragen kan je mij mailen op paul.suyker@hotmail.com
+#Door Paul Suyker
+
+import pandas
+#open de xlsx file van de .gazedata
+df = pandas.read_excel(r'C:\Users\p.suyker\Analyse\Data\Participanten\0022\0022.xlsx') 
+#open de fixatiestip data van special X
+Fixdf = pandas.read_excel(r'C:\Users\p.suyker\Analyse\Data\Participanten\0022\PLPfix0022.xlsx') 
+
+#Verwijder alle data die niet PLP onder de variabele 'task' hebben staan
+PLPdf = df[df['Task'] =='PLP'].copy()
+#Necessary variables:
+Xres = 1920
+Yres = 1080
+#Omzetten XGazePosLeftEye naar correcte format voor de I2MC import functie
+LeftPosX = PLPdf['XGazePosLeftEye'] #sla de variabele genaamd XGazePosLeftEye op onder de naam LeftPosX in het script
+PLPdf['XGazePosLeftEye']=pandas.to_numeric(PLPdf['XGazePosLeftEye'],errors='coerce') #verander strings naar floats
+PLPdf['XGazePosLeftEye']=PLPdf['XGazePosLeftEye'].multiply(1920) #vermenigvuldig met de X resolutie, pas dit aan als je een andere resolutie hebt
+PLPdf.loc[ (PLPdf['XGazePosLeftEye'] > Xres) | (PLPdf['XGazePosLeftEye'] <0) , 'XGazePosLeftEye'] =-Xres #alle vreemde data (<0,>resolutie) wordt -1920 (missing data in I2CM)
+
+#herhaal voor de andere variabelen
+LeftPosY = PLPdf['YGazePosLeftEye'] 
+PLPdf['YGazePosLeftEye']=pandas.to_numeric(PLPdf['YGazePosLeftEye'],errors='coerce')
+PLPdf['YGazePosLeftEye']=PLPdf['YGazePosLeftEye'].multiply(1080)
+PLPdf.loc[ (PLPdf['YGazePosLeftEye'] > Yres) | (PLPdf['YGazePosLeftEye'] <0) , 'YGazePosLeftEye'] =-Yres
+
+RightPosX = PLPdf['XGazePosRightEye']
+PLPdf['XGazePosRightEye']=pandas.to_numeric(PLPdf['XGazePosRightEye'],errors='coerce')
+PLPdf['XGazePosRightEye']=PLPdf['XGazePosRightEye'].multiply(1920)
+PLPdf.loc[ (PLPdf['XGazePosRightEye'] > Xres) | (PLPdf['XGazePosRightEye'] <0) , ['XGazePosRightEye']] =-Xres
+
+RightPosY = PLPdf['YGazePosRightEye']
+PLPdf['YGazePosRightEye']=pandas.to_numeric(PLPdf['YGazePosRightEye'],errors='coerce')
+PLPdf['YGazePosRightEye']=PLPdf['YGazePosRightEye'].multiply(1080)
+PLPdf.loc[(PLPdf['YGazePosRightEye'] > Yres) | (PLPdf['YGazePosRightEye'] <0) , ['YGazePosRightEye']] =-Yres
+
+
+#DIT DEEL DROPT DATA OP BASIS VAN DE FIXATIESTIPPEN BINNEN HET SPECIAL X PROJECT ONDERZOEK
+#Fixatiebestand wordt geopend. Om de onset time en eind time van fixatiestippen te achterhalen. Deze worden vervolgens verwijderd.
+#Input is een file bestand met starttijd met als naam PLPFixation.Onsettime en als eindtijd PLPFixation.OnsetToOnsetTime
+from_ts = Fixdf['PLPFixation.OnsetTime'] - Fixdf ['PLPFixation.OnsetDelay']
+Fixdur = Fixdf['PLPFixation.OnsetToOnsetTime'] + Fixdf['PLPFixation.OnsetDelay']
+to_ts = from_ts+Fixdur
+print(from_ts)
+print (to_ts)
+print (PLPdf)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[0]) & (PLPdf['RTTime'] < to_ts[0])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[1]) & (PLPdf['RTTime'] < to_ts[1])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[2]) & (PLPdf['RTTime'] < to_ts[2])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[3]) & (PLPdf['RTTime'] < to_ts[3])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[4]) & (PLPdf['RTTime'] < to_ts[4])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[5]) & (PLPdf['RTTime'] < to_ts[5])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[6]) & (PLPdf['RTTime'] < to_ts[6])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[7]) & (PLPdf['RTTime'] < to_ts[7])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[8]) & (PLPdf['RTTime'] < to_ts[8])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[9]) & (PLPdf['RTTime'] < to_ts[9])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[10]) & (PLPdf['RTTime'] < to_ts[10])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[11]) & (PLPdf['RTTime'] < to_ts[11])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[12]) & (PLPdf['RTTime'] < to_ts[12])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[13]) & (PLPdf['RTTime'] < to_ts[13])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[14]) & (PLPdf['RTTime'] < to_ts[14])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[15]) & (PLPdf['RTTime'] < to_ts[15])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[16]) & (PLPdf['RTTime'] < to_ts[16])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[17]) & (PLPdf['RTTime'] < to_ts[17])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[18]) & (PLPdf['RTTime'] < to_ts[18])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[19]) & (PLPdf['RTTime'] < to_ts[19])].index)
+PLPdf = PLPdf.drop(PLPdf[(PLPdf['RTTime'] > from_ts[20]) & (PLPdf['RTTime'] < to_ts[20])].index)
+
+#Bereken total time en reset de start index naar 0. zet # voor de start index reset line als je dit niet wilt.
+TotalTime = PLPdf['RTTime'].max() -PLPdf['RTTime'].min() #total time spent berekenen
+#print ('Total time spent watching = '+str(TotalTime))
+#irst_value = PLPdf['RTTime'].values[0] 
+#PLPdf.loc[(PLPdf['RTTime']>0),'RTTime'] = PLPdf['RTTime']- PLPdf['RTTime'].values[0] #start index resetten
+
+#sla de 5 benodigde variabelen voor I2MC op in een excel bestand op locatie.
+df = PLPdf[['RTTime','XGazePosLeftEye','YGazePosLeftEye','XGazePosRightEye','YGazePosRightEye']] #kies variabelen die in bestand moeten
+df = df.reset_index(drop=True)
+df=df.rename(columns={'RTTime':'data.time'}) #maak de miliseconde variabele data.time ter duidelijkheid
+
+#print ('Total time spent watching = '+str(totaltime))
+df.to_excel('C:\\Users\\p.suyker\\Analyse\\Data\\Participanten\\0022\\input0022.xlsx') #sla het op gekozen locatie op
