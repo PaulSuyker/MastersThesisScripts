@@ -1,0 +1,54 @@
+import pandas as pd
+#importeer de dataframe uit excel
+fixdf= pd.read_excel(r'C:\Users\p.suyker\Analyse\Data\Participanten\0022\allfixations.xlsx')
+#fixdf= pd.read_csv(r'C:\Users\p.suyker\Analyse\Data\Participanten\0009\allfixations0009.txt', delimiter = '\t', names =['FixStart', 'FixEnd', 'FixDur', 'XPos', 'YPos', 'FlankedByDataLoss', 'Fraction Interpolated', 'WeightCutoff', 'RMSxy', 'BCEA', 'FixRangeX', 'FixRangeY', 'Participant', 'Trial' ]) 
+#df = pd.read_excel('C:\Users\p.suyker\Analyse\Data\Participanten\0009xlsx') 
+AOIdf = pd.read_excel(r'C:\Users\p.suyker\Analyse\Data\Participanten\0022\PLPfix0022.xlsx')
+df = pd.read_excel(r'C:\Users\p.suyker\Analyse\Data\Participanten\0022\input0022.xlsx')
+Fixdf = pd.read_excel(r'C:\Users\p.suyker\Analyse\Data\Participanten\0022\PLPfix0022.xlsx')
+#maak variablen numeric
+fixdf['XPos']=pd.to_numeric(fixdf['XPos'],errors='coerce')
+fixdf['YPos']=pd.to_numeric(fixdf['YPos'],errors='coerce')
+fixdf['FixStart']=pd.to_numeric(fixdf['FixStart'],errors='coerce')
+#Maak de variabelen nodig voor bepalen links of rechts social/nonsocial
+fixdf["AOI"] = 'Background'
+fixdf['Typeleft'] = ''
+fixdf['Typeright'] = ''
+fixdf['FixType'] = 'Background'
+onset = AOIdf['PLPFixation.OnsetTime']
+SocialRightStart = 0
+SocialRightEnd = onset[10]
+SocialLeftEnd = 1000000000
+#Bepaal AOI op basis van coordinaten
+fixdf.loc[ (fixdf['XPos'] <= 695) & (fixdf['XPos'] >=265) & (fixdf['YPos'] <=700) & (fixdf['YPos'] >= 380), "AOI"] = 'AOILeft'
+fixdf.loc[ (fixdf['XPos'] <= 1655) & (fixdf['XPos'] >=1225) & (fixdf['YPos'] <=700) & (fixdf['YPos'] >= 380), "AOI"] = 'AOIRight'
+
+fixdf.loc[(fixdf['FixStart'] >= 0) & (fixdf['FixStart'] <= onset[10]), 'Typeleft'] = 'NonSocial'
+fixdf.loc[(fixdf['FixStart'] >= 0) & (fixdf['FixStart'] <= onset[10]), 'Typeright'] = 'Social'
+#Social Left movie
+fixdf.loc[(fixdf['FixStart'] >= onset[10]) & (fixdf['FixStart'] <= 100000000), 'Typeleft'] = 'Social'
+fixdf.loc[(fixdf['FixStart'] >= onset[10]) & (fixdf['FixStart'] <= 100000000), 'Typeright'] = 'NonSocial'
+#Print de aantal fixaties van elke AOI
+
+#Bepaal en print de totale tijd waarin gefixeert wordt
+totaltime = fixdf ['FixDur'].sum()
+
+
+#Maak nieuwe variabele en bepaal of AOI social of nonsocial is
+fixdf.loc[(fixdf['AOI'] == 'AOILeft') & (fixdf['Typeleft'] == 'Social'), 'FixType'] = 'Social'
+fixdf.loc[(fixdf['AOI'] == 'AOIRight') & (fixdf['Typeright'] == 'Social'), 'FixType'] = 'Social'
+fixdf.loc[(fixdf['AOI'] == 'AOILeft') & (fixdf['Typeleft'] == 'NonSocial'), 'FixType'] = 'NonSocial'
+fixdf.loc[(fixdf['AOI'] == 'AOIRight') & (fixdf['Typeright'] == 'NonSocial'), 'FixType'] = 'NonSocial'
+#Sla nieuwe dataframe, inclusief AOI's op in excel
+fixdf.to_excel(r'C:\Users\p.suyker\Analyse\Data\Participanten\0009\0009test.xlsx')
+print(fixdf['FixType'].value_counts())
+print ('Total time spent fixating = '+str(totaltime) +' miliseconds')
+#Print totale tijd besteed aan linker en rechter AOI fixaties
+Socialdf = fixdf[fixdf['FixType'] =='Social'].copy()
+TotalTimeLeftAOI = Socialdf['FixDur'].sum()
+print ('Total time spent fixating on the Social stimulus = '+str(TotalTimeLeftAOI) +' miliseconds')
+NonSocialdf = fixdf[fixdf['FixType'] =='NonSocial'].copy()
+TotalTimeRightAOI = NonSocialdf['FixDur'].sum()
+print ('Total time spent fixating on the NonSocial stimulus = '+str(TotalTimeRightAOI) +' miliseconds')
+FixProp = TotalTimeLeftAOI / (TotalTimeRightAOI+TotalTimeLeftAOI)
+print ('Fixation proportion is: '+str(FixProp))
