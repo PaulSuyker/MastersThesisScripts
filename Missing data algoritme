@@ -1,0 +1,24 @@
+#Dit script zorgt ervoor dat als een van de ogen op ofwel de X of Y coordinaat missing data heeft, de hele rij als missing wordt weergeven
+#Vervolgens berekend dit script de proportion missing data van de dataset.
+#bepaal first en last values van sheet
+first_value = df['data.time'][0]
+lf = df['data.time'].iloc[-1]
+#filter laatste en hoogste timestamps uit totaal want die zijn in script 1 al gefilterd dus moeten niet meegeteld worden
+#Telt alle fixatie en delays bij elkaar op
+filtered = Fixdf['PLPFixation.OnsetToOnsetTime'].sum() + Fixdf['PLPFixation.OnsetDelay'].sum()
+filtered = filtered-Fixdf['PLPFixation.OnsetToOnsetTime'][0]
+#Normaliseer missing values, dus als er een missing value is voor een as voor een oog zijn ze allemaal missing
+df.loc[(df['XGazePosLeftEye'] == -1920), 'YGazePosLeftEye'] = -1080
+df.loc[(df['YGazePosLeftEye'] == -1080), 'XGazePosLeftEye'] = -1920
+df.loc[(df['XGazePosRightEye'] == -1920), 'YGazePosRightEye'] = -1080
+df.loc[(df['YGazePosRightEye'] == -1080), 'XGazePosRightEye'] = -1920
+df.loc[(df['XGazePosRightEye'] == -1920), 'YGazePosLeftEye'] = -1080
+df.loc[(df['XGazePosRightEye'] == -1920), 'XGazePosLeftEye'] = -1920
+df.loc[(df['XGazePosLeftEye'] == -1920), 'YGazePosRightEye'] = -1080
+df.loc[(df['XGazePosLeftEye'] == -1920), 'XGazePosRightEye'] = -1920
+missingDF=df[df['XGazePosRightEye'] == -1920].copy() 
+missingDF.to_excel(r'C:\Users\p.suyker\Analyse\Data\Participanten\0009\test.xlsx')
+totaltime= lf-first_value-filtered
+missing_data = len(missingDF['data.time'])*20
+missingprop= missing_data/totaltime
+print ('The proportion of missing data compared to data is: ' +str(missingprop))
